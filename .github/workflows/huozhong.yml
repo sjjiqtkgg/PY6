@@ -1,8 +1,6 @@
 name: Auto Register Huozhong
 
 on:
-  schedule:
-    - cron: '0 4 * * *' # 每天北京时间 12 点运行
   workflow_dispatch:
 
 jobs:
