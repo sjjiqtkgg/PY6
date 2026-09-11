@@ -1,0 +1,33 @@
+name: Auto Register Huozhong
+
+on:
+  schedule:
+    - cron: '0 4 * * *' # 每天北京时间 12 点运行
+  workflow_dispatch:
+
+jobs:
+  run-register:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      # 这是最关键的一步：安装 Linux 系统的 Tesseract OCR 引擎
+      - name: Install Tesseract OCR
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y tesseract-ocr
+
+      - name: Install Python Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          # 安装脚本所需的 Python 库
+          pip install requests pillow pytesseract
+
+      - name: Run Script
+        run: python 火种注册.py
