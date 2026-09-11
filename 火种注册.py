@@ -2,9 +2,13 @@ import requests
 import base64
 import random
 import string
+import urllib3
 from PIL import Image
 from io import BytesIO
 import pytesseract
+
+# 禁用 SSL 证书警告
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # ================= 全局接口配置 =================
 GENERATE_URL = 'https://47.76.166.180/captcha/generate'
@@ -50,7 +54,7 @@ def gen_random_info():
 # ================= 验证码相关 =================
 def get_captcha():
     """获取验证码：返回 captchaId 和 imageBase64"""
-    resp = requests.get(GENERATE_URL, headers=HEADERS, timeout=10)
+    resp = requests.get(GENERATE_URL, headers=HEADERS, timeout=10, verify=False)
     resp.raise_for_status()
     data = resp.json()
     return data['captchaId'], data['imageBase64']
@@ -72,7 +76,7 @@ def ocr_captcha(image_base64):
 def validate_captcha(captcha_id, user_input):
     """提交验证码验证：返回 (valid, token)"""
     data = {"captchaId": captcha_id, "userInput": user_input}
-    resp = requests.post(VALIDATE_URL, headers=HEADERS, json=data, timeout=10)
+    resp = requests.post(VALIDATE_URL, headers=HEADERS, json=data, timeout=10, verify=False)
     resp.raise_for_status()
     result = resp.json()
     return result, result.get('token')
@@ -82,7 +86,7 @@ def validate_captcha(captcha_id, user_input):
 def user_register(captcha_token, register_data):
     """用户注册：携带 captchaToken，不带 Cookie"""
     url = f"{REGISTER_URL}?captchaToken={captcha_token}"
-    resp = requests.post(url, headers=HEADERS, json=register_data, timeout=10)
+    resp = requests.post(url, headers=HEADERS, json=register_data, timeout=10, verify=False)
     resp.raise_for_status()
     return resp.json()
 
@@ -122,18 +126,10 @@ def single_register_with_retry(reg_info):
 
 # ================= 主程序 =================
 if __name__ == '__main__':
-    print("===== 账号自动注册脚本 [带失败重试] =====")
+    print("===== 账号自动注册脚本 [GitHub Actions 无交互版] =====")
 
-    # 输入循环次数并校验
-    while True:
-        try:
-            loop_times = int(input("请输入要注册的账号数量："))
-            if loop_times > 0:
-                break
-            else:
-                print("❌ 请输入大于0的整数！")
-        except ValueError:
-            print("❌ 输入错误！请输入有效的数字。")
+    # 直接写死要注册的账号数量（可根据需要自行修改数字）
+    loop_times = 3
 
     # 初始化统计
     success_count = 0
